@@ -224,7 +224,31 @@ cbv. reflexivity. Qed.
 (* Exemple : définir l'automate "M_commence_et_finit_par_a" à trois états
              qui accepte les mots commençant et finissant par 'a',
              et donner des tests unitaires *)
+Definition delta_commence_et_finit_par_a (q : nat)(c : Alphabet) : option nat :=
+match (q, c) with
+|(1, a) => Some 2
+|(1, b) => None
+|(2, a) => Some 2
+|(2, b) => Some 3
+|(3, a) => Some 2
+|(3, b) => Some 3
+|(_, _) => None
+end.
 
+Definition M_commence_et_finit_par_a : automate :=
+Automate (1::2::3::[]) (a::b::[]) delta_commence_et_finit_par_a 1 (2::[]).
+
+Example M_commence_et_finit_par_a_reconnait_1 : reconnait M_commence_et_finit_par_a [] = false.
+cbv. reflexivity. Qed.
+
+Example M_commence_et_finit_par_a_reconnait_2 : reconnait M_commence_et_finit_par_a [a] = true.
+cbv. reflexivity. Qed.
+
+Example M_commence_et_finit_par_a_reconnait_3 : reconnait M_commence_et_finit_par_a [a;b;a;a;b] = false.
+cbv. reflexivity. Qed.
+
+Example M_commence_et_finit_par_a_reconnait_4 : reconnait M_commence_et_finit_par_a [a;b;a;a;b;a] = true.
+cbv. reflexivity. Qed.
 
 
 
@@ -232,7 +256,12 @@ cbv. reflexivity. Qed.
 (* Partie 2 : la représentation des fonctions de transition en Coq ou
               recherche dans les listes de paires  *)
 (******************************************************************************)
+Require Import Nat.
+Print nat.
 
+(* La fonction qui teste l'égalité de deux entiers. *)
+Check Nat.eqb : nat -> nat -> bool.
+Print Nat.eqb.
 (* On souhaite donner une description de la fonction de transition par SON GRAPHE
    plutôt que donner son code.
    Rappel, le graphe d'une fonction f : A -> B est la relation définie par { (x,f(x)) | x dans A}.
@@ -272,14 +301,25 @@ end.
    None sinon.
    La liste est une liste de "((nat * Alphabet) * Alphabet)" et donc la clé est un "(nat * Alphabet)".
 *)
-
+Fixpoint trouve_paire (l : list ((nat * Alphabet) * nat)) (p : (nat * Alphabet)) : option nat :=
+match l with
+|[] => None
+|h::l2 => match p with
+                       |(n,c) => if (Nat.eqb (fst (fst h)) n)
+                        then if (comp_alphabet(snd (fst h)) c)
+                             then Some (snd h)
+                             else trouve_paire l2 p
+                        else trouve_paire l2 p
+                        end
+end.
 
 (* EXERCICE *)
 (* En utilisant trouve_paire, définir une fonction "graphe_vers_fonction" qui transforme
    une liste "list ((nat * Alphabet) * nat)" en une fonction "nat -> Alphabet -> option nat"
 *)
-
-
+Definition graphe_vers_fonction (l : list (nat * Alphabet) * nat) : nat -> Alphabet -> option nat :=
+   forall (n : nat) (c : Alphabet) , n -> c -> trouve_paire l (n, c).
+end.
 
 (* EXERCICE *)
 (* Exemple : définir l'automate "M_nb_b_impair'"à deux états qui accepte les mots contenant un nombre impair de 'b',
