@@ -205,7 +205,7 @@ match a with
 end.
 
 (* RÉSULTAT ATTENDU : 9 *)
-Compute (mult deux deux).
+Compute (mult trois trois).
 
 
 (* EXERCICE *)
@@ -226,37 +226,70 @@ Compute (est_pair trois).
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir la fonction factorielle sur les entiers *)
+Fixpoint factorielle (a : entiers) : entiers :=
+match a with
+| Z => un
+| Succ Z => un
+| Succ n => mult a (factorielle n)
+end.
 
 (* RÉSULTAT ATTENDU : 24 sous forme de Succ( ... (Succ(Z) ...) *)
-(* Compute (factorielle (plus trois un)). *)
+Compute (factorielle (plus trois un)).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir la fonction moins, soustraction non négative sur les entiers *)
+Fixpoint moins (a b : entiers) : entiers :=
+match b with
+| Z => a
+| Succ n => match a with
+            | Z => Z
+            | Succ m => moins m n
+            end
+end.
 
 (* RÉSULTAT ATTENDU : Succ Z *)
-(* Compute (moins deux un).*)
+Compute (moins deux un).
 
 (* RÉSULTAT ATTENDU : Z *)
-(* Compute (moins deux trois).*)
+Compute (moins deux trois).
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir une fonction inf, tel que inf a b vaut/retourne Vrai si a est
    inférieur ou égal à b, Faux sinon. *)
+Fixpoint inf (a b : entiers) : booleens :=
+match a with
+| Z => Vrai
+| Succ n =>  match b with
+             | Z => Faux
+             | Succ m => inf n m
+              end
+end.
 
 (* RÉSULTAT ATTENDU : Vrai *)
-(* Compute (inf trois trois). *)
+Compute (inf trois trois).
+
+Compute (inf deux trois).
+Compute (inf trois deux).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir une fonction egal, tel que egal a b donne Vrai si les entiers
    a et b sont égaux, Faux sinon.*)
+Fixpoint egal (a b : entiers) : booleens :=
+match (a, b) with 
+| (Z, Z) => Vrai
+| (Succ n, Succ m) => egal n m
+| _ => Faux
+end.
+
 
 (* RÉSULTAT ATTENDU : Vrai *)
-(* Compute (egal trois trois). *)
+Compute (egal trois trois).
 
 (* RÉSULTAT ATTENDU : Faux *)
-(* Compute (egal un trois). *)
+Compute (egal un trois).
+Compute (egal trois un).
 
 
 (* ------------------------------------------------------------ *)
@@ -340,16 +373,27 @@ Compute (ajoute 3 liste2).
   C'est bien sûr une fonction qui travaille selon la FORME de l : si
   c'est vide, la longueur vaut zéro, et si l est de la forme cons n l'
   à vous de jouer.  *)
+Fixpoint longueur (l : nliste) : nat :=
+match l with
+| vide => 0
+| cons n vide => 1
+| cons n l1 => 1 + longueur l1
+end. 
 
 (* RÉSULTAT ATTENDU : 2 *)
-(* Compute (longueur liste2).*)
+Compute (longueur liste2).
 
 (* EXERCICE *)
 (* Écrire une fonction concat: nliste -> nliste -> nliste telle que concat l l'
    retourne une liste correspondant à l'ajout des éléments de l en tête de la liste l'. *)
+Fixpoint concat (l l' : nliste) : nliste :=
+match l with
+| vide => l'
+| cons n l1 => cons n (concat l1 l')
+end.
 
 (* RÉSULTAT ATTENDU : cons 2 (cons 1 (cons 2 (cons 1 vide))) *)
-(* Compute (concat liste2 liste2).*)
+Compute (concat liste2 liste2).
 
 (* EXERCICE *)
 (* Écrire une fonction recherche: nat -> nliste -> bool telle que recherche n l
@@ -359,11 +403,20 @@ Require Import Nat.
 Check (eqb 3 4).
 Compute (eqb 3 4).
 
+Fixpoint recherche (n : nat) (l : nliste) : bool :=
+match l with
+| vide => false
+| cons a l1 => match eqb n a with
+               | true => true
+               | false => recherche n l1
+               end
+end.
+
 (* RÉSULTAT ATTENDU : true *)
-(* Compute (recherche 1 liste2).*)
+Compute (recherche 1 liste2).
 
 (* RÉSULTAT ATTENDU : false *)
-(* Compute (recherche 3 liste2).*)
+Compute (recherche 3 liste2).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
@@ -371,12 +424,15 @@ Compute (eqb 3 4).
    retourne une liste correspondant à son argument dans l'ordre
    inverse. Dans un premier temps, on pourra utiliser la fonction de
    concaténation vue précédemment. *)
+Fixpoint miroir (l : nliste) : nliste :=
+match l with
+| vide => l
+| cons n l1 => concat (miroir l1) (cons n vide)
+end.
 
 (* RÉSULTAT ATTENDU : cons 1 (cons 2 (cons 3 (cons 4 vide))) *)
-(* Compute (miroir liste4).*)
+Compute (miroir liste4).
 
-(* RÉSULTAT ATTENDU : cons 1 (cons 2 (cons 3 (cons 4 vide))) *)
-(* Compute (miroir' liste4).*)
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
@@ -384,57 +440,109 @@ Compute (eqb 3 4).
    supprime n l retourne une liste d'objets de type nat correspondant
    à l sans la première occurrence de n (le cas échéant), à l
    sinon. *)
+Fixpoint supprime (n : nat) (l : nliste) : nliste :=
+match l with
+| vide => l
+| cons a l1 => match eqb n a with
+               | true => l1
+               | false => cons a (supprime n l1)
+               end
+end. 
 
 (* RÉSULTAT ATTENDU : cons 4 (cons 2 (cons 1 vide)) *)
-(* Compute (supprime 3 liste4). *)
+Compute (supprime 3 liste4).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Écrire une fonction supprime_tout: nat -> nliste -> nliste telle
    que supprime_tout n l retourne une liste correspondant à l sans
    occurrence d'un nat n (le cas échéant), à l sinon. *)
+Fixpoint supprime_tout (n : nat) (l : nliste) : nliste :=
+match l with
+| vide => l
+| cons a l1 => match eqb n a with
+               | true => supprime_tout n l1
+               | false => cons a (supprime_tout n l1)
+               end
+end.
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Écrire une fonction il_existe_pair: nliste -> booleens, telle que
    il_existe_pair l retourne Vrai si un élément de l est pair, Faux
    sinon. *)
+Fixpoint pair (n : nat) : bool :=
+match n with
+| 0 => true
+| 1 => false
+| S (S a) => pair a
+end.
+
+Fixpoint il_existe_pair (l : nliste) : bool :=
+match l with
+| vide => false
+| cons n l1 => match pair n with
+               | true => true
+               | false => il_existe_pair l1
+               end
+end.
+
 
 (* RÉSULTAT ATTENDU : true *)
-(* Compute (il_existe_pair liste4).*)
+Compute (il_existe_pair liste4).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Insertion triée *)
 (* Écrire dans un premier temps une fonction leq : nat -> nat -> bool qui teste si le
 premier entier est inférieur ou égal au second *)
+Fixpoint leq (a b : nat) : bool :=
+match (a, b) with
+| (0, 0) => true
+| (0, S b1) => true
+| (S a1, 0) => false
+| (S a1, S b1) => leq a1 b1
+end.
 
 (* RÉSULTAT ATTENDU : true *)
-(* Compute (leq 2 2).*)
+Compute (leq 2 2).
 
 (* RÉSULTAT ATTENDU : true *)
-(* Compute (leq 2 3).*)
+Compute (leq 2 3).
 
 (* RÉSULTAT ATTENDU : false *)
-(* Compute (leq 3 2).*)
+Compute (leq 3 2).
 
 (* Écrire une fonction insertion_triee : nat -> nliste -> nliste qui effectue
 une insertion triée dans une liste *)
+Fixpoint insertion_triee (n : nat) (l : nliste) : nliste :=
+match l with
+| vide => cons n vide
+| cons a l1 => match leq n a with
+               | true => cons n l
+               | false => cons a (insertion_triee n l1)
+               end
+end. 
 
 (* RÉSULTAT ATTENDU : cons 1 (cons 2 (cons 2 (cons 3 (cons 4 vide)))) *)
-(* Compute (insertion_triee 2 (miroir liste4)).*)
+Compute (insertion_triee 2 (miroir liste4)).
 
 (* RÉSULTAT ATTENDU : cons 4 (cons 3 (cons 2 (cons 1 (cons 6 vide)))) *)
-(* Compute (insertion_triee 6 liste4).*)
+Compute (insertion_triee 6 liste4).
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Tri par insertion d'une liste *)
 (* Écrire une fonction tri_insertion : nliste -> nliste qui effectue
 le tri par insertion d'une liste *)
+Fixpoint tri_insertion (l : nliste) : nliste :=
+match l with
+| vide => l
+| cons a l1 => insertion_triee a (tri_insertion l1)
+end.
 
 (* RÉSULTAT ATTENDU : cons 1 (cons 1 (cons 2 (cons 2 (cons 3 (cons 3 (cons 4 (cons 4 vide)))))) *)
-(* Compute (tri_insertion (concat liste4 liste4)).*)
+Compute (tri_insertion (concat liste4 liste4)).
 
 
 
@@ -446,12 +554,13 @@ le tri par insertion d'une liste *)
 (* Donner une définition par induction de l'ensemble nBin des arbres
 binaires contenant des nat. On souhaite avoir une représentation de
 l'arbre vide dans nBin. *)
-
+Inductive nBin : Type :=
+| nEmpty : nBin
+| nNode : nBin -> nat -> nBin ->nBin.
 
 
 (* Donner un exemple d'arbre, disons à 5 éléments *)
 
-(*
 Definition a1 := nNode
                       (nNode nEmpty 2 nEmpty)
                       1
@@ -463,40 +572,60 @@ Definition a1 := nNode
 
 Check a1.
 Print a1.
-*)
 
 (* EXERCICE *)
 (* Définir la fonction nelements qui renvoie la liste des éléments
    contenus dans un arbre binaire de nat. Le faire naïvement avec un
    concat pour commencer. *)
 
+Fixpoint nelements (a : nBin) : nliste :=
+match a with
+| nEmpty => vide
+| nNode ga n da => cons n (concat (nelements ga) (nelements da))
+end.
+
 (* RÉSULTAT ATTENDU : cons 1 (cons 2 (cons 3 (cons 4 (cons 5 vide)))) *)
-(* Compute (nelements a1).*)
+Compute (nelements a1).
 
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir la fonction nnelts qui renvoie le nombre de noeuds internes
    (portant une étiquette de type nat) dans un nBin. *)
+Fixpoint nnelts (a : nBin) : nat :=
+match a with
+| nEmpty => 0
+| nNode ga n da => 1 + nnelts ga + nnelts da
+end.
 
 (* RÉSULTAT ATTENDU : 5 *)
-(* Compute (nnelts a1).*)
+Compute (nnelts a1).
 
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir la fonction nfeuilles qui renvoie le nombre de feuilles *)
+Fixpoint nfeuilles (a : nBin) : nat :=
+match a with
+| nEmpty => 1
+| nNode ga n da => nfeuilles ga + nfeuilles da
+end.
 
 (* RÉSULTAT ATTENDU : 6 *)
-(* Compute nfeuilles a1. *)
+Compute nfeuilles a1.
 
 
 (* EXERCICE A FAIRE CHEZ VOUS *)
 (* Définir la fonction nsum qui renvoie la somme des valeurs portées
    par les noeuds internes d'un nBin. *)
+Fixpoint nsum (a : nBin) : nat :=
+match a with
+| nEmpty => 0
+| nNode ga n da => n + nsum ga + nsum da
+end.
 
 (* RÉSULTAT ATTENDU : 15 *)
-(* Compute (nsum a1).*)
+Compute (nsum a1).
 
 
 

@@ -50,9 +50,7 @@ end.
 
 
 
-Theorem comp_alphabet_correct : forall (x : Alphabet), forall (y : Alphabet), comp_alphabet x y = true -> x=y.
-Proof.
-Admitted.
+
 
 
 (* On attend "false" comme résultat *)
@@ -294,9 +292,17 @@ Qed.
 (* Définir la fonction "appartient" qui prend en paramètres un entier
    n et une liste d'entiers (donc de type "list nat") et renvoie true
    si et seulement si n est dans la liste *)
+Fixpoint appartient (n : nat) (l : list nat) : bool :=
+match l with
+| nil => false
+| cons x l1 => match eqb n x with
+               | true => true
+               | false => appartient n l1
+               end
+end.
 
 (* Tests unitaires avec reflexivity *)
-(*
+
 Example appartient_ex1 : appartient 0 [1;3;0;5] = true.
 Proof.
 cbv. reflexivity.
@@ -306,7 +312,6 @@ Example appartient_ex2 : appartient 4 [1;3;0;5] = false.
 Proof.
 cbv. reflexivity.
 Qed.
-*)
 
 
 (******************************************************************************)
@@ -331,10 +336,18 @@ Qed.
    et renvoie la première valeur associée à k quand elle existe et None sinon.
    Les clés seront des Alphabet, les valeurs des nat.
 *)
+Fixpoint trouve (l : list (Alphabet*nat)) (x : Alphabet) : option nat :=
+match l with
+| nil => None
+| cons (y, n) l1 => match comp_alphabet x y with
+                    | true => Some n
+                    | false => trouve l1 x
+                    end
+end.
 
 
 (* Tests unitaires avec reflexivity *)
-(*
+
 Example trouve_ex1 :  trouve [(a,1); (b,2)] a = Some 1.
 Proof.
 cbv. reflexivity.
@@ -347,7 +360,7 @@ Example trouve_ex3 :  trouve [(a,2); (a,1)] b = None.
 Proof.
 cbv. reflexivity.
 Qed.
-*)
+
 
 
 (* FIN DU TP2 *)
@@ -374,8 +387,11 @@ Qed.
    - prouver comp_alphabet_complet : si x = y alors comp_alphabet x y = true
 *)
 
-
-
+Theorem comp_alphabet_correct : forall (x : Alphabet), forall (y : Alphabet), comp_alphabet x y = true -> x=y.
+Proof.
+intro h0.
+intro h1.
+intro h2.
 (* EXERCICE *)
 (* Enoncer et prouver la propriété que comparer un symbole de l'alphabet avec lui-même renvoie vrai.
    HINT : "comp_alphabet_complet" fait exactement ce dont on a besoin, on peut donc l'utiliser *)

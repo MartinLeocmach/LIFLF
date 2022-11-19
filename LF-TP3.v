@@ -317,8 +317,10 @@ end.
 (* En utilisant trouve_paire, définir une fonction "graphe_vers_fonction" qui transforme
    une liste "list ((nat * Alphabet) * nat)" en une fonction "nat -> Alphabet -> option nat"
 *)
-Definition graphe_vers_fonction (l : list (nat * Alphabet) * nat) : nat -> Alphabet -> option nat :=
-   forall (n : nat) (c : Alphabet) , n -> c -> trouve_paire l (n, c).
+CoInductive graphe_vers_fonction (l : list ((nat * Alphabet) * nat)) : nat -> Alphabet -> option nat :=
+  forall (n : nat)(c : Alphabet),
+          appartient l (n, c) -> trouve_paire l (n, c)
+  end
 end.
 
 (* EXERCICE *)
